@@ -1,4 +1,4 @@
-/* ScummVM - Graphic Adventure Engine
+﻿/* ScummVM - Graphic Adventure Engine
  *
  * ScummVM is the legal property of its developers, whose names
  * are too numerous to list here. Please refer to the COPYRIGHT
@@ -36,8 +36,9 @@ bool MacPopUp::draw(ManagedSurface *g, bool forceRedraw) {
 	if (!_isVisible)
 		return false;
 
-	if (_dimensionsDirty)
+	if (_dimensionsDirty) {
 		calcSubMenuBounds(_items[0]->submenu, _mouseX, _mouseY + _offsetY);
+	}
 
 	if (!_contentIsDirty && !forceRedraw)
 		return false;
@@ -74,11 +75,31 @@ void MacPopUp::closeMenu() {
 		}
 	}
 
-	if (_isSmart && activeSubItem != -1) {
-		// Smart menu, open menu at offset position (so selected item under cursor)
-		int yDisplace = -activeSubItem * _menuDropdownItemHeight;
-		_offsetY = _mouseY + yDisplace > 0 ? yDisplace : -_mouseY; // If offset sum gets out of window, then position menu to 0 (ie below top of window)
+	_items[0]->submenu->numItemsOverflowingUpwards = 0;
+	_items[0]->submenu->numItemsOverflowingDownwards = 0;
+	_items[0]->submenu->scroll = 0;
+	_offsetY = 0;
 
+	if (_isSmart)
+	{
+		if (activeSubItem != -1)
+			_offsetY = -activeSubItem * _menuDropdownItemHeight;
+		else if (_prevCheckedItem != -1)
+			_offsetY = -_prevCheckedItem * _menuDropdownItemHeight;
+
+		while (_offsetY + _mouseY < 0) {
+			_offsetY += _menuDropdownItemHeight;
+
+			_items[0]->submenu->numItemsOverflowingUpwards++;
+		}
+
+		int itemsLeft = _items[0]->submenu->items.size() - _items[0]->submenu->numItemsOverflowingUpwards;
+		int spaceLeft = _screen.h - MIN(_mouseY + _offsetY, _mouseY);
+		_items[0]->submenu->numItemsOverflowingDownwards = MAX(0, itemsLeft - spaceLeft / _menuDropdownItemHeight);
+	}
+
+	// Smart menu, open menu at offset position (so selected item under cursor)
+	if (_isSmart && activeSubItem != -1) {
 		// Checkmark handling
 		setCheckMark(_items[0]->submenu->items[activeSubItem], true);
 

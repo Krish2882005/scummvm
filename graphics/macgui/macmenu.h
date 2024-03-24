@@ -43,8 +43,11 @@ struct MacMenuSubMenu {
 	ItemArray items;
 	Common::Rect bbox;
 	int highlight;
+	int numItemsOverflowingUpwards;
+	int numItemsOverflowingDownwards;
+	int scroll;
 
-	MacMenuSubMenu() : highlight(-1) {}
+	MacMenuSubMenu() : highlight(-1), numItemsOverflowingUpwards(0), numItemsOverflowingDownwards(0), scroll(0) {}
 
 	~MacMenuSubMenu();
 

@@ -19,20 +19,20 @@
  *
  */
 
-#include "common/system.h"
-#include "common/stack.h"
+#include "common/formats/winexe_pe.h"
 #include "common/keyboard.h"
 #include "common/macresman.h"
-#include "common/formats/winexe_pe.h"
+#include "common/stack.h"
+#include "common/system.h"
 #include "common/unicode-bidi.h"
 
-#include "graphics/primitives.h"
 #include "graphics/font.h"
 #include "graphics/fonts/ttf.h"
 #include "graphics/macgui/macfontmanager.h"
-#include "graphics/macgui/macwindowmanager.h"
-#include "graphics/macgui/macwindow.h"
 #include "graphics/macgui/macmenu.h"
+#include "graphics/macgui/macwindow.h"
+#include "graphics/macgui/macwindowmanager.h"
+#include "graphics/primitives.h"
 
 namespace Graphics {
 
@@ -79,7 +79,7 @@ void MacMenuSubMenu::enableAllItems() {
 }
 
 MacMenu::MacMenu(int id, const Common::Rect &bounds, MacWindowManager *wm)
-		: BaseMacWindow(id, false, wm) {
+	: BaseMacWindow(id, false, wm) {
 	_loadedFont = NULL;
 
 	_font = getMenuFont();
@@ -937,8 +937,10 @@ void MacMenu::calcSubMenuBounds(MacMenuSubMenu *submenu, int x, int y) {
 	int x1 = x;
 	int y1 = y;
 	int x2 = x1 + maxWidth + _menuLeftDropdownPadding + _menuRightDropdownPadding - 4;
+	int y2 = y1 + (submenu->items.size()) * _menuDropdownItemHeight;
 
-	int y2 = y1 + submenu->items.size() * _menuDropdownItemHeight + 2;
+	if (submenu->numItemsOverflowingDownwards > 0 || submenu->numItemsOverflowingUpwards > 0)
+		y2 = y1 + ((_screen.h - y1) / _menuDropdownItemHeight) * _menuDropdownItemHeight;
 
 	submenu->bbox.left = x1;
 	submenu->bbox.top = y1;
@@ -1058,7 +1060,6 @@ bool MacMenu::draw(ManagedSurface *g, bool forceRedraw) {
 	if ((_wm->_mode & kWMModalMenuMode) || !_wm->_screen)
 		g_system->copyRectToScreen(_screen.getBasePtr(_bbox.left, _bbox.top), _screen.pitch, _bbox.left, _bbox.top, _bbox.width(), _bbox.height());
 
-
 	for (uint i = 0; i < _menustack.size(); i++) {
 		renderSubmenu(_menustack[i], (i == _menustack.size() - 1));
 	}
@@ -1086,10 +1087,41 @@ void MacMenu::renderSubmenu(MacMenuSubMenu *menu, bool recursive) {
 	_screen.hLine(r->left + 3, r->bottom + 1, r->right + 1, _wm->_colorBlack);
 
 	int y = r->top + 1;
-	int x = _align == kTextAlignRight ? -_menuRightDropdownPadding: _menuLeftDropdownPadding;
+	int x = _align == kTextAlignRight ? -_menuRightDropdownPadding : _menuLeftDropdownPadding;
 	x += r->left;
 
-	for (uint i = 0; i < menu->items.size(); i++) {
+	int maxItemsVisible = menu->bbox.height() / _menuDropdownItemHeight;
+	int numItemsVisible = menu->items.size() - menu->numItemsOverflowingUpwards - menu->numItemsOverflowingDownwards + ABS(menu->scroll);
+	if(numItemsVisible > maxItemsVisible)
+		numItemsVisible = maxItemsVisible;
+
+	for (uint i = menu->numItemsOverflowingUpwards + menu->scroll; i < menu->items.size(); i++) {
+		if (menu->numItemsOverflowingUpwards + menu->scroll > 0 && i == menu->numItemsOverflowingUpwards + menu->scroll) {
+			// Render a scrolling up arrow 
+			int arrowX = _align == kTextAlignRight ? menu->bbox.right - 16 : menu->bbox.left + 16;
+			int arrowY = menu->bbox.top + 6;
+			int halfWidth = 4;
+
+			for (int j = 0; j <= halfWidth; j++) {
+				_screen.hLine(arrowX - j, arrowY + j, arrowX + j, _wm->_colorBlack);
+			}
+
+			y += _menuDropdownItemHeight;
+			continue;
+		} else if (menu->numItemsOverflowingDownwards - menu->scroll > 0 && numItemsVisible == maxItemsVisible && menu->items.size() - 1 + menu->numItemsOverflowingUpwards && i == numItemsVisible - 1 + menu->scroll + menu->numItemsOverflowingUpwards) {
+			// Render a scrolling down arrow 
+			int arrowX = _align == kTextAlignRight ? menu->bbox.right - 16 : menu->bbox.left + 16;
+			int arrowY = menu->bbox.bottom - 6;
+			int halfWidth = 4;
+
+			for (int j = 0; j <= halfWidth; j++) {
+				_screen.hLine(arrowX - j, arrowY - j, arrowX + j, _wm->_colorBlack);
+			}
+
+			y += _menuDropdownItemHeight;
+			continue;
+		}
+
 		Common::String text(menu->items[i]->text);
 		Common::String acceleratorText(getAcceleratorString(menu->items[i], ""));
 
@@ -1142,7 +1174,7 @@ void MacMenu::renderSubmenu(MacMenuSubMenu *menu, bool recursive) {
 				const Font *font = getMenuFont(menu->items[i]->style);
 				int checkSymbol = _wm->_fontMan->hasBuiltInFonts() ? 0xD7 : 18;
 
-				int padding = _align == kTextAlignRight ? -_menuRightDropdownPadding: _menuLeftDropdownPadding;
+				int padding = _align == kTextAlignRight ? -_menuRightDropdownPadding : _menuLeftDropdownPadding;
 				int offset = padding - font->getCharWidth(checkSymbol);
 
 				// calculating the padding and offset, we draw the √ at the center
@@ -1289,7 +1321,7 @@ bool MacMenu::mouseClick(int x, int y) {
 			_wm->activateMenu();
 
 		setActive(true);
-		return true;
+		// return true;
 	}
 
 	if (!_active)
@@ -1298,14 +1330,38 @@ bool MacMenu::mouseClick(int x, int y) {
 	if (_menustack.size() > 0 && _menustack.back()->bbox.contains(x, y)) {
 		MacMenuSubMenu *menu = _menustack.back();
 		int numSubItem = menu->ytoItem(y, _menuDropdownItemHeight);
+		// Dont go below the available options or get stuck noob
+		numSubItem += menu->numItemsOverflowingUpwards + menu->scroll;
+		if (numSubItem > menu->items.size() - 1)
+			numSubItem = menu->items.size() - 1;
 
 		if (numSubItem != _activeSubItem) {
 			if (_wm->_mode & kWMModalMenuMode) {
 				if (_activeSubItem == -1 || menu->items[_activeSubItem]->submenu != nullptr)
 					g_system->copyRectToScreen(_wm->_screenCopy->getPixels(), _wm->_screenCopy->pitch, 0, 0, _wm->_screenCopy->w, _wm->_screenCopy->h);
 			}
-			_activeSubItem = numSubItem;
-			menu->highlight = _activeSubItem;
+
+			int maxItemsVisible = menu->bbox.height() / _menuDropdownItemHeight;
+			int numItemsVisible = menu->items.size() - menu->numItemsOverflowingUpwards - menu->numItemsOverflowingDownwards + ABS(menu->scroll);
+			if (numItemsVisible > maxItemsVisible)
+				numItemsVisible = maxItemsVisible;
+
+			//If the user clicks on the "Scroll Up Arrow" or the "Scroll Down Arrow" then ignore the selection
+			if (!(menu->numItemsOverflowingUpwards + menu->scroll > 0 && menu->ytoItem(y, _menuDropdownItemHeight) == 0) && !(menu->numItemsOverflowingDownwards - menu->scroll > 0 && numItemsVisible == maxItemsVisible && menu->ytoItem(y, _menuDropdownItemHeight) == numItemsVisible - 1)) {
+				_activeSubItem = numSubItem;
+				menu->highlight = _activeSubItem;
+			}
+
+			if (menu->ytoItem(y, _menuDropdownItemHeight) == 0) {
+				if (menu->numItemsOverflowingUpwards + menu->scroll > 0) {
+					menu->scroll--;
+				}
+			}
+			else if (menu->ytoItem(y, _menuDropdownItemHeight) == numItemsVisible - 1) {
+				if (menu->numItemsOverflowingDownwards - menu->scroll > 0 && numItemsVisible == maxItemsVisible) {
+					menu->scroll++;
+				}
+			}
 
 			_contentIsDirty = true;
 			_wm->setFullRefresh(true);
