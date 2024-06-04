@@ -218,7 +218,7 @@ MacShape *Sprite::getShape() {
 	shape->spriteType = _spriteType;
 	shape->foreColor = _foreColor;
 	shape->backColor = _backColor;
-	shape->lineSize = _thickness & 0x3;
+	shape->lineSize = _thickness;
 	shape->pattern = getPattern();
 	shape->tile = nullptr;
 	shape->tileRect = nullptr;
