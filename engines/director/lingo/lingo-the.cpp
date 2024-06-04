@@ -1343,7 +1343,7 @@ Datum Lingo::getTheSprite(Datum &id1, int field) {
 		d = channel->getBbox().left;
 		break;
 	case kTheLineSize:
-		d = sprite->_thickness & 0x3;
+		d = sprite->_thickness;
 		break;
 	case kTheLoc:
 		{
@@ -1581,6 +1581,8 @@ void Lingo::setTheSprite(Datum &id1, int field, Datum &d) {
 	case kTheLineSize:
 		if (d.asInt() != sprite->_thickness) {
 			sprite->_thickness = d.asInt();
+			if (d.asInt() > 3)
+				warning("BUILDBOT: Lingo::setTheSprite(): Thickness is >3: %d", d.asInt());
 			channel->_dirty = true;
 		}
 		break;
