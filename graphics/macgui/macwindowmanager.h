@@ -412,7 +412,7 @@ public:
 
 	// we use it to indicate whether we are clicking the hilite-able widget.
 	// In list style button mode, we will highlight the subsequent buttons only when we've clicked the hilite-able button initially
-	bool _hilitingWidget;
+	MacWidget *_highlightedWidget;
 
 private:
 	void loadDesktop();

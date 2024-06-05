@@ -143,7 +143,7 @@ void Movie::resolveScriptEvent(LingoEvent &event) {
 			if (spriteId > 0) {
 				if (_score->_channels[spriteId]->_sprite->shouldHilite()) {
 					_currentHiliteChannelId = spriteId;
-					g_director->_wm->_hilitingWidget = true;
+					g_director->_wm->_highlightedWidget = _score->_channels[spriteId]->_widget;
 					g_director->getCurrentWindow()->setDirty(true);
 					g_director->getCurrentWindow()->addDirtyRect(_score->_channels[_currentHiliteChannelId]->getBbox());
 				}
@@ -175,7 +175,7 @@ void Movie::resolveScriptEvent(LingoEvent &event) {
 				g_director->getCurrentWindow()->setDirty(true);
 				g_director->getCurrentWindow()->addDirtyRect(_score->_channels[_currentHiliteChannelId]->getBbox());
 			}
-			g_director->_wm->_hilitingWidget = false;
+			g_director->_wm->_highlightedWidget = nullptr;
 
 			_currentDraggedChannel = nullptr;
 

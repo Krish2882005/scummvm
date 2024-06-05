@@ -154,7 +154,7 @@ bool Movie::processEvent(Common::Event &event) {
 		}
 
 		// for the list style button, we still have chance to trigger events though button.
-		if (!(g_director->_wm->_mode & Graphics::kWMModeButtonDialogStyle) && g_director->_wm->_mouseDown && g_director->_wm->_hilitingWidget) {
+		if (!(g_director->_wm->_mode & Graphics::kWMModeButtonDialogStyle) && g_director->_wm->_mouseDown && g_director->_wm->_highlightedWidget) {
 			if (g_director->getVersion() < 400)
 				spriteId = sc->getActiveSpriteIDFromPos(pos);
 			else
