@@ -191,7 +191,7 @@ MacWindowManager::MacWindowManager(uint32 mode, MacPatterns *patterns, Common::L
 	_fullRefresh = true;
 	_inEditableArea = false;
 
-	_hilitingWidget = false;
+	_highlightedWidget = nullptr;
 
 	if (mode & kWMMode32bpp)
 		_pixelformat = Graphics::PixelFormat(4, 8, 8, 8, 8, 24, 16, 8, 0);
@@ -322,12 +322,9 @@ void MacWindowManager::setMode(uint32 mode) {
 }
 
 void MacWindowManager::clearHandlingWidgets() {
-	// pass a LBUTTONUP event to those widgets should clear those state
-	Common::Event event;
-	event.type = Common::EVENT_LBUTTONUP;
-	event.mouse = _lastClickPos;
-	processEvent(event);
-
+	if (_highlightedWidget)
+		_highlightedWidget->setActive(false);
+	_highlightedWidget = nullptr;
 	setActiveWidget(nullptr);
 	_hoveredWidget = nullptr;
 }

@@ -179,7 +179,7 @@ bool MacButton::processEvent(Common::Event &event) {
 		if (_wm->_mouseDown) {
 			if (_wm->_mode & kWMModeButtonDialogStyle)
 				return true;
-			else if (!_wm->_hilitingWidget)
+			else if (!_wm->_highlightedWidget)
 				return true;
 			// hovered widget in macwindow will help us set the button status to non-active.
 			// so we only care about setting active here is ok.
@@ -189,7 +189,7 @@ bool MacButton::processEvent(Common::Event &event) {
 		break;
 	case Common::EVENT_LBUTTONDOWN:
 		setActive(true);
-		_wm->_hilitingWidget = true;
+		_wm->_highlightedWidget = this;
 		break;
 	case Common::EVENT_LBUTTONUP:
 		setActive(false);
@@ -209,7 +209,7 @@ bool MacButton::processEvent(Common::Event &event) {
 			break;
 		}
 
-		_wm->_hilitingWidget = false;
+		_wm->_highlightedWidget = nullptr;
 		break;
 	default:
 		warning("MacButton:: processEvent: Event not handled");
