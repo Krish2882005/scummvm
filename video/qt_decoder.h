@@ -162,7 +162,6 @@ private:
 
 		Common::Rational getScaledWidth() const;
 		Common::Rational getScaledHeight() const;
-
 	private:
 		QuickTimeDecoder *_decoder;
 		Common::QuickTimeParser::Track *_parent;
@@ -175,6 +174,11 @@ private:
 		const byte *_curPalette;
 		mutable bool _dirtyPalette;
 		bool _reversed;
+
+		void ConstructOriginalPano();
+		const Graphics::Surface *ProjectPano();
+
+		Graphics::Surface *_originalPano;
 
 		// Forced dithering of frames
 		byte *_forcedDitherPalette;

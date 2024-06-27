@@ -318,6 +318,8 @@ QuickTimeDecoder::VideoTrackHandler::VideoTrackHandler(QuickTimeDecoder *decoder
 	_forcedDitherPalette = 0;
 	_ditherTable = 0;
 	_ditherFrame = 0;
+
+	ConstructOriginalPano();
 }
 
 // FIXME: This check breaks valid QuickTime movies, such as the KQ6 Mac opening.
@@ -506,6 +508,9 @@ uint32 QuickTimeDecoder::VideoTrackHandler::getNextFrameStartTime() const {
 }
 
 const Graphics::Surface *QuickTimeDecoder::VideoTrackHandler::decodeNextFrame() {
+	if (_decoder->_qtvrType == QTVRType::PANORAMA)
+		return ProjectPano();
+
 	if (endOfTrack())
 		return 0;
 
@@ -879,7 +884,7 @@ const Graphics::Surface *QuickTimeDecoder::VideoTrackHandler::bufferNextFrame() 
 		}
 	}
 
-	if (!_decoder->_isVR)
+	if (_decoder->_qtvrType != QTVRType::OBJECT)
 		_curFrame++;
 
 	// Get the next packet
@@ -1041,6 +1046,50 @@ void ditherFrame(const Graphics::Surface &src, Graphics::Surface &dst, const byt
 }
 
 } // End of anonymous namespace
+
+void QuickTimeDecoder::VideoTrackHandler::ConstructOriginalPano() {
+	uint32 totalWidth = getHeight() * _parent->frameCount;
+	uint32 totalHeight = getWidth();
+
+	_originalPano = new Graphics::Surface();
+	_originalPano->create(totalWidth, totalHeight, getPixelFormat());
+
+	for (uint32 frameIndex = 0; frameIndex < _parent->frameCount; frameIndex++) {
+		const Graphics::Surface *frame = bufferNextFrame();
+
+		for (int16 y = 0; y < frame->h; y++) {
+			for (int16 x = 0; x < frame->w; x++) {
+				uint32 pixel = frame->getPixel(x, y);
+
+				_originalPano->setPixel((totalWidth - 1) - (frameIndex * _parent->height + y), x, pixel);
+			}
+		}
+	}
+}
+
+const Graphics::Surface *QuickTimeDecoder::VideoTrackHandler::ProjectPano() {
+	Graphics::Surface *projectedPano = new Graphics::Surface();
+	projectedPano->create(_originalPano->w, _originalPano->h, _originalPano->format);
+
+	const float c = projectedPano->w;
+	const float r = c / (2 * M_PI);
+
+	// HACK: FIXME: Hard coded for now
+	const float d = 500.0f;
+
+	for (int16 y = 0; y < projectedPano->h; y++) {
+		for (int16 x = 0; x < projectedPano->w; x++) {
+			double u = atan(x / d) / (2.0 * M_PI);
+			double v = y * r * cos(u) / d;
+
+			uint32 pixel = _originalPano->getPixel(round(u * _originalPano->w), round(v));
+
+			projectedPano->setPixel(x, y, pixel);
+		}
+	}
+
+	return projectedPano;
+}
 
 const Graphics::Surface *QuickTimeDecoder::VideoTrackHandler::forceDither(const Graphics::Surface &frame) {
 	if (frame.format.bytesPerPixel == 1) {
