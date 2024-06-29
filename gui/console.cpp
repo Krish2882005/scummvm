@@ -909,6 +909,9 @@ void ConsoleDialog::handleMouseDown(int x, int y, int button, int clickCount) {
 			return;
 
 		int lineNumber = (y - _topPadding) / kConsoleLineHeight;
+		if (lineNumber >= _linesPerPage)
+			return;
+
 		int ind = (x - _leftPadding) / kConsoleCharWidth;
 		_selBegin = (_scrollLine - _linesPerPage + 1 + lineNumber) * kCharsPerLine + ind;
 		_selEnd = _selBegin;
@@ -929,6 +932,9 @@ void ConsoleDialog::handleMouseMoved(int x, int y, int button) {
 		lineNumber = MIN(lineNumber, _linesPerPage - 1);
 		int col = (x - _leftPadding) / kConsoleCharWidth;
 		_selEnd = (_scrollLine - _linesPerPage + 1 + lineNumber) * kCharsPerLine + col;
+
+		if (_selEnd >= _linesPerPage * kCharsPerLine)
+			return;
 
 		if (_selEnd == selEndPreviousMove)
 			return;
