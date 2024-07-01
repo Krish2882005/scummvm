@@ -73,10 +73,21 @@ public:
 	void enableEditListBoundsCheckQuirk(bool enable) { _enableEditListBoundsCheckQuirk = enable; }
 	Common::String getAliasPath();
 
+	float getFOV() const { return ((VideoTrackHandler *)_nextVideoTrack)->getFOV(); }
+	void setFOV(float fov) { ((VideoTrackHandler *)_nextVideoTrack)->setFOV(fov); }
+	float getPanAngle() const { return ((VideoTrackHandler *)_nextVideoTrack)->getPanAngle(); }
+	void setPanAngle(float panAngle) { ((VideoTrackHandler *)_nextVideoTrack)->setPanAngle(panAngle); }
+	float getTiltAngle() const { return ((VideoTrackHandler *)_nextVideoTrack)->getTiltAngle(); }
+	void setTiltAngle(float tiltAngle) { ((VideoTrackHandler *)_nextVideoTrack)->setTiltAngle(tiltAngle); }
+
 	void handleMouseMove(int16 x, int16 y);
 	void handleMouseButton(bool isDown, int16 x = -1, int16 y = -1);
 
 	bool isVR() const { return _isVR; }
+	QTVRType getQTVRType() const { return _qtvrType;}
+
+	int getWarpMode() const { return _warpMode; }
+	void setWarpMode(uint8 warpMode) { _warpMode = warpMode; }
 
 protected:
 	Common::QuickTimeParser::SampleDesc *readSampleDesc(Common::QuickTimeParser::Track *track, uint32 format, uint32 descSize);
@@ -92,6 +103,8 @@ private:
 	bool _isMouseButtonDown;
 
 	bool _isVR;
+	
+	uint8 _warpMode; // (2 | 1 | 0) for 2-d, 1-d or no warping
 
 	Graphics::Surface *_scaledSurface;
 	void scaleSurface(const Graphics::Surface *src, Graphics::Surface *dst,
@@ -160,6 +173,13 @@ private:
 		bool canDither() const;
 		void setDither(const byte *palette);
 
+		float getFOV() const { return _fov; }
+		void setFOV(float fov) { _fov = _fov; }
+		float getPanAngle() const { return _panAngle; }
+		void setPanAngle(float panAngle) { _panAngle = _panAngle; }
+		float getTiltAngle() const { return _tiltAngle; }
+		void setTiltAngle(float tiltAngle) { _tiltAngle = tiltAngle; }
+
 		Common::Rational getScaledWidth() const;
 		Common::Rational getScaledHeight() const;
 
@@ -175,6 +195,10 @@ private:
 		const byte *_curPalette;
 		mutable bool _dirtyPalette;
 		bool _reversed;
+
+		float _fov;
+		float _panAngle;
+		float _tiltAngle;
 
 		void constructPanorama();
 		void projectPanorama();
