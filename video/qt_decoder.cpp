@@ -108,6 +108,29 @@ const Graphics::Surface *QuickTimeDecoder::decodeNextFrame() {
 	return frame;
 }
 
+QuickTimeDecoder::NodeData QuickTimeDecoder::getNodeData(uint32 nodeID) {
+	for (const auto &sample : _panoTrack->panoSamples) {
+		if (sample.hdr.nodeID == nodeID) {
+			return {
+				nodeID,
+				sample.hdr.defHPan,
+				sample.hdr.defVPan,
+				sample.hdr.defZoom,
+				sample.hdr.minHPan,
+				sample.hdr.minVPan,
+				sample.hdr.maxHPan,
+				sample.hdr.maxVPan,
+				sample.hdr.minZoom,
+				sample.strTable.getString(sample.hdr.nameStrOffset)};
+		}
+	}
+
+	error("QuickTimeDecoder::getNodeData(): Node with nodeID %d not found!", nodeID);
+
+	return {};
+}
+
+
 Common::QuickTimeParser::SampleDesc *QuickTimeDecoder::readSampleDesc(Common::QuickTimeParser::Track *track, uint32 format, uint32 descSize) {
 	if (track->codecType == CODEC_TYPE_VIDEO) {
 		debug(0, "Video Codec FourCC: \'%s\'", tag2str(format));
@@ -669,6 +692,53 @@ void QuickTimeDecoder::handleMouseButton(bool isDown, int16 x, int16 y) {
 		_prevMouseX = x;
 		_prevMouseY = y;
 	}
+}
+
+void QuickTimeDecoder::setCurrentRow(int row) {
+	VideoTrackHandler *track = (VideoTrackHandler *)_nextVideoTrack;
+
+	int currentColumn = track->getCurFrame() % _nav.columns;
+	int newFrame = row * _nav.columns + currentColumn;
+
+	if (newFrame >= 0 && newFrame < track->getFrameCount()) {
+		track->setCurFrame(newFrame);
+	}
+}
+
+void QuickTimeDecoder::setCurrentColumn(int column) {
+	VideoTrackHandler *track = (VideoTrackHandler *)_nextVideoTrack;
+
+	int currentRow = track->getCurFrame() / _nav.columns;
+	int newFrame = currentRow * _nav.columns + column;
+
+	if (newFrame >= 0 && newFrame < track->getFrameCount()) {
+		track->setCurFrame(newFrame);
+	}
+}
+
+void QuickTimeDecoder::nudge(const Common::String &direction) {
+	VideoTrackHandler *track = (VideoTrackHandler *)_nextVideoTrack;
+
+	int curFrame = track->getCurFrame();
+	int currentRow = curFrame / _nav.columns;
+	int currentRowStart = currentRow * _nav.columns;
+	int newFrame = curFrame;
+
+	if (direction.equalsIgnoreCase("left")) {
+		newFrame = (curFrame - 1 - currentRowStart) % _nav.columns + currentRowStart;
+	} else if (direction.equalsIgnoreCase("right")) {
+		newFrame = (curFrame + 1 - currentRowStart) % _nav.columns + currentRowStart;
+	} else if (direction.equalsIgnoreCase("top")) {
+		newFrame = curFrame - _nav.columns;
+		if (newFrame < 0)
+			return;
+	} else if (direction.equalsIgnoreCase("bottom")) {
+		newFrame = curFrame + _nav.columns;
+		if (newFrame >= track->getFrameCount())
+			return;
+	}
+
+	track->setCurFrame(newFrame);
 }
 
 Audio::Timestamp QuickTimeDecoder::VideoTrackHandler::getFrameTime(uint frame) const {

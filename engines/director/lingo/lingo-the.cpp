@@ -1496,6 +1496,12 @@ void Lingo::setTheSprite(Datum &id1, int field, Datum &d) {
 			sprite->setAutoPuppet(kAPBlend, true);
 		}
 		break;
+	case kTheMember: {
+		CastMemberID targetMember = d.asMemberID();
+		if (targetMember != sprite->_castId)
+			movie->duplicateCastMember(sprite->_castId, d.asMemberID());
+		break;
+	}
 	case kTheCastNum:
 	case kTheMemberNum:
 		{
