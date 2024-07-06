@@ -22,13 +22,15 @@
 #ifndef DIRECTOR_LINGO_XTRAS_QTVRXTRA_H
 #define DIRECTOR_LINGO_XTRAS_QTVRXTRA_H
 
+#include "director/lingo/xtra.h"
 #include "video/qt_decoder.h"
 
 namespace Director {
 
-class QtvrxtraXtraObject : public Object<QtvrxtraXtraObject> {
+class QtvrxtraXtraObject : public Object<QtvrxtraXtraObject>, public XtraObject {
 public:
 	QtvrxtraXtraObject(ObjectType objType);
+	QtvrxtraXtraObject(const QtvrxtraXtraObject &other);
 
 	bool hasProp(const Common::String &propName) override;
 	Datum getProp(const Common::String &propName) override;

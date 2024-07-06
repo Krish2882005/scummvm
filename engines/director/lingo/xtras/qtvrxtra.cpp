@@ -247,6 +247,12 @@ QtvrxtraXtraObject::QtvrxtraXtraObject(ObjectType ObjectType) :Object<QtvrxtraXt
 	_transitionSpeed = 1.0f;
 
 	_updateMode = "normal";
+
+	_priority = 1;
+}
+
+QtvrxtraXtraObject::QtvrxtraXtraObject(const QtvrxtraXtraObject &other) : Object<QtvrxtraXtraObject>("Qtvrxtra"), XtraObject(other) {
+	*this = other;
 }
 
 bool QtvrxtraXtraObject::hasProp(const Common::String &propName) {
@@ -331,7 +337,7 @@ void QtvrxtraXtra::m_QTVROpen(int nargs) {
 		return;
 	}
 
-	me->_rect = stringToRect(rectStr);
+	me->_dims = me->_rect = stringToRect(rectStr);
 
 	Common::Path path = findMoviePath(pathStr);
 	if (path.empty()) {

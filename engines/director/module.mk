@@ -53,6 +53,7 @@ MODULE_OBJS = \
 	lingo/lingo-preprocessor.o \
 	lingo/lingo-the.o \
 	lingo/lingo-utils.o \
+	lingo/xtra.o \
 	lingo/lingodec/ast.o \
 	lingo/lingodec/context.o \
 	lingo/lingodec/codewritervisitor.o \
