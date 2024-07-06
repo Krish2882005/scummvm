@@ -249,6 +249,8 @@ QtvrxtraXtraObject::QtvrxtraXtraObject(ObjectType ObjectType) :Object<QtvrxtraXt
 	_updateMode = "normal";
 
 	_priority = 1;
+
+	_capEventsMouseOver = false;
 }
 
 QtvrxtraXtraObject::QtvrxtraXtraObject(const QtvrxtraXtraObject &other) : Object<QtvrxtraXtraObject>("Qtvrxtra"), XtraObject(other) {
@@ -394,7 +396,59 @@ void QtvrxtraXtra::m_QTVRGetQTVRType(int nargs) {
 
 XOBJSTUB(QtvrxtraXtra::m_QTVRIdle, 0)
 XOBJSTUB(QtvrxtraXtra::m_QTVRMouseDown, 0)
-XOBJSTUB(QtvrxtraXtra::m_QTVRMouseOver, 0)
+
+bool QtvrxtraXtraObject::processEvent(Common::Event &event) {
+	if (!_capEventsMouseOver)
+		return false;
+
+	switch (event.type) {
+	case Common::EVENT_LBUTTONDOWN:
+		_video->handleMouseButton(true, event.mouse.x, event.mouse.y);
+		return true;
+	case Common::EVENT_LBUTTONUP:
+		_video->handleMouseButton(false);
+		return true;
+	case Common::EVENT_MOUSEMOVE:
+		_video->handleMouseMove(event.mouse.x, event.mouse.y);
+		if (!_rect.contains(event.mouse)) {
+			setActive(false);
+			_capEventsMouseOver = false;
+		}
+		return true;
+	case Common::EVENT_KEYDOWN:
+		switch (event.kbd.keycode) {
+		case Common::KEYCODE_LEFT:
+			_video->nudge("left");
+			break;
+		case Common::KEYCODE_RIGHT:
+			_video->nudge("right");
+			break;
+		case Common::KEYCODE_UP:
+			_video->nudge("top");
+			break;
+		case Common::KEYCODE_DOWN:
+			_video->nudge("bottom");
+			break;
+		default:
+			break;
+		}
+		return true;
+	default:
+		return false;
+	}
+}
+
+void QtvrxtraXtra::m_QTVRMouseOver(int nargs) {
+	g_lingo->printSTUBWithArglist("QtvrxtraXtra::m_QTVRMouseOver", nargs);
+	ARGNUMCHECK(0);
+
+	QtvrxtraXtraObject *me = (QtvrxtraXtraObject *)g_lingo->_state->me.u.obj;
+
+	me->setActive(true);
+	me->_capEventsMouseOver = true;
+
+	g_lingo->push(Datum(0));
+}
 
 void QtvrxtraXtra::m_QTVRGetPanAngle(int nargs) {
 	g_lingo->printArgs("QtvrxtraXtra::m_QTVRGetPanAngle", nargs);
@@ -656,7 +710,17 @@ XOBJSTUB(QtvrxtraXtra::m_QTVRGetPanZoomStartHandler, 0)
 XOBJSTUB(QtvrxtraXtra::m_QTVRSetPanZoomStartHandler, 0)
 XOBJSTUB(QtvrxtraXtra::m_QTVRGetRolloverHotSpotHandler, 0)
 XOBJSTUB(QtvrxtraXtra::m_QTVRSetRolloverHotSpotHandler, 0)
-XOBJSTUB(QtvrxtraXtra::m_QTVRExitMouseOver, 0)
+
+void QtvrxtraXtra::m_QTVRExitMouseOver(int nargs) {
+	g_lingo->printArgs("QtvrxtraXtra::m_QTVRExitMouseOver", nargs);
+	ARGNUMCHECK(0);
+
+	QtvrxtraXtraObject *me = (QtvrxtraXtraObject *)g_lingo->_state->me.u.obj;
+
+	me->setActive(false);
+	me->_capEventsMouseOver = false;
+}
+
 XOBJSTUB(QtvrxtraXtra::m_QTVRPassMouseDown, 0)
 
 void QtvrxtraXtra::m_IsQTVRMovie(int nargs) {
