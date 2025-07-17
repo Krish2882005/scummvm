@@ -121,6 +121,9 @@ public:
 	// Used in film loops
 	uint _filmLoopFrame;
 
+	// Used in movie cast member
+	uint _movieFrame;
+
 	Common::Rect _rollOverBbox;
 
 	int _startFrame;

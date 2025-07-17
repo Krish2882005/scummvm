@@ -59,6 +59,7 @@ Channel::Channel(Score *sc, Sprite *sp, int priority) {
 	_stopTime = 0;
 
 	_filmLoopFrame = 0;
+	_movieFrame = 0;
 
 	_visible = true;
 	_dirty = true;
@@ -92,6 +93,7 @@ Channel& Channel::operator=(const Channel &channel) {
 	_stopTime = channel._stopTime;
 
 	_filmLoopFrame = channel._filmLoopFrame;
+	_movieFrame = 0;
 
 	_visible = channel._visible;
 	_dirty = channel._dirty;
@@ -474,6 +476,20 @@ void Channel::setClean(Sprite *nextSprite, bool partial) {
 	bool spriteTypeChanged = _sprite->_spriteType != nextSprite->_spriteType;
 
 	if (nextSprite) {
+		if (nextSprite->_cast && (_dirty || _sprite->_castId != nextSprite->_castId)) {
+			if (_sprite->_castId != nextSprite->_castId && nextSprite->_cast->_type == kCastDigitalVideo) {
+				if (((DigitalVideoCastMember *)nextSprite->_cast)->loadVideoFromCast()) {
+					_movieTime = 0;
+					((DigitalVideoCastMember *)nextSprite->_cast)->setChannel(this);
+					((DigitalVideoCastMember *)nextSprite->_cast)->startVideo();
+				}
+			} else if (nextSprite->_cast->_type == kCastFilmLoop || nextSprite->_cast->_type == kCastMovie) {
+				// brand new film loop, reset the frame counter.
+				_filmLoopFrame = 1;
+				_movieFrame = 1;
+			}
+		}
+
 		// for the non-puppet QDShape, since we won't use isDirty to check whether the QDShape is changed.
 		// so we may always keep the sprite info because we need it to draw QDShape.
 		if (_sprite->_puppet || _sprite->_autoPuppet || (!nextSprite->isQDShape() && partial)) {
