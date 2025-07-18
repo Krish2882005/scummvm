@@ -158,8 +158,9 @@ void Window::drawChannelBox(Director::Movie *currentMovie, Graphics::ManagedSurf
 }
 
 bool Window::render(bool forceRedraw, Graphics::ManagedSurface *blitTo) {
-	if (!_currentMovie)
+	if (!_currentMovie) {
 		return false;
+	}
 
 	if (!blitTo)
 		blitTo = _window->getSurface();
@@ -275,6 +276,7 @@ bool Window::render(bool forceRedraw, Graphics::ManagedSurface *blitTo) {
 }
 
 void Window::setStageColor(uint32 stageColor, bool forceReset) {
+	debug("Window::setStageColor: Am I called? Which movie called me? %s", getCurrentMovie()->getMacName().c_str());
 	if (stageColor != _stageColor || forceReset) {
 		_stageColor = stageColor;
 		reset();

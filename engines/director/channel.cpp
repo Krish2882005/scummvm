@@ -59,7 +59,6 @@ Channel::Channel(Score *sc, Sprite *sp, int priority) {
 	_stopTime = 0;
 
 	_filmLoopFrame = 0;
-	_movieFrame = 0;
 
 	_visible = true;
 	_dirty = true;
@@ -93,7 +92,6 @@ Channel& Channel::operator=(const Channel &channel) {
 	_stopTime = channel._stopTime;
 
 	_filmLoopFrame = channel._filmLoopFrame;
-	_movieFrame = 0;
 
 	_visible = channel._visible;
 	_dirty = channel._dirty;
@@ -486,7 +484,6 @@ void Channel::setClean(Sprite *nextSprite, bool partial) {
 			} else if (nextSprite->_cast->_type == kCastFilmLoop || nextSprite->_cast->_type == kCastMovie) {
 				// brand new film loop, reset the frame counter.
 				_filmLoopFrame = 1;
-				_movieFrame = 1;
 			}
 		}
 
@@ -798,6 +795,7 @@ bool Channel::hasSubChannels() {
 }
 
 Common::Array<Channel> *Channel::getSubChannels() {
+	debug("Channel::getSubChannels: Called");
 	if (_sprite->_cast) {
 		Common::Rect bbox = getBbox();
 		if (_sprite->_cast->_type == kCastFilmLoop)
