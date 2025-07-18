@@ -108,11 +108,12 @@ public:
 	Window(int id, bool scrollable, bool resizable, bool editable, Graphics::MacWindowManager *wm, DirectorEngine *vm, bool isStage);
 	~Window();
 
-	bool render(bool forceRedraw = false, Graphics::ManagedSurface *blitTo = nullptr);
+	void decRefCount() override;
+	virtual bool render(bool forceRedraw = false, Graphics::ManagedSurface *blitTo = nullptr);
 	void invertChannel(Channel *channel, const Common::Rect &destRect);
 
 	bool needsAppliedColor(DirectorPlotData *pd);
-	void setStageColor(uint32 stageColor, bool forceReset = false);
+	virtual void setStageColor(uint32 stageColor, bool forceReset = false);
 	uint32 getStageColor() { return _stageColor; }
 
 	void reset();

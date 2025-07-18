@@ -95,6 +95,7 @@ enum {
 	kDebugPauseOnLoad,
 	kDebugSaving,
 	kDebugPaths,
+	kDebugMovieCast
 };
 
 enum {
