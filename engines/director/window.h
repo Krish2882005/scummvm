@@ -114,7 +114,7 @@ public:
 
 	bool needsAppliedColor(DirectorPlotData *pd);
 	virtual void setStageColor(uint32 stageColor, bool forceReset = false);
-	uint32 getStageColor() { return _stageColor; }
+	virtual uint32 getStageColor() { return _stageColor; }
 
 	void reset();
 
@@ -140,7 +140,7 @@ public:
 	void setVisible(bool visible, bool silent = false);
 	bool setNextMovie(Common::String &movieFilenameRaw);
 
-	virtual void setMainWindow();
+	virtual void setAsCurrent();
 	virtual void setCurrentMovie(Movie *movie);
 
 	void ensureMovieIsLoaded();

@@ -457,8 +457,9 @@ void Score::updateCurrentFrame() {
 			// With the advent of demand loading frames and due to partial updates, we rebuild our channel data
 			// when jumping.
 			nextFrameNumberToLoad = _nextFrame;
-		} else if (!_window->_newMovieStarted)
+		} else if (!_window->_newMovieStarted) {
 			nextFrameNumberToLoad = (_curFrameNumber+1);
+		}
 	}
 
 	_nextFrame = 0;
@@ -1000,6 +1001,10 @@ bool Score::renderPrePaletteCycle(RenderMode mode) {
 	if (_puppetPalette)
 		return false;
 
+	// if the movie is a linked movie cast member, it shouldn't set the palette
+	if (getMovie()->_isCastMember) {
+		return false;
+	}
 	// Skip this if we don't have a palette instruction
 	CastMemberID currentPalette = _currentFrame->_mainChannels.palette.paletteId;
 	if (currentPalette.isNull())
@@ -1117,6 +1122,11 @@ void Score::setLastPalette() {
 	if (_puppetPalette)
 		return;
 
+	// if the movie is a linked movie cast member, it shouldn't set the palette
+	if (getMovie()->_isCastMember) {
+		return;
+	}
+
 	bool isCachedPalette = false;
 	CastMemberID currentPalette = _currentFrame->_mainChannels.palette.paletteId;
 	// Director allows you to use palette IDs for cast members
@@ -1151,7 +1161,7 @@ void Score::setLastPalette() {
 		// Switch to a new palette immediately if:
 		// - this is color cycling mode, or
 		// - the cached palette ID is different (i.e. we jumped in the score)
-		if (_currentFrame->_mainChannels.palette.colorCycling || isCachedPalette)
+		if ((_currentFrame->_mainChannels.palette.colorCycling || isCachedPalette) && !getMovie()->_isCastMember)
 			g_director->setPalette(g_director->_lastPalette);
 	}
 
