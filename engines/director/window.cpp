@@ -157,6 +157,10 @@ void Window::drawChannelBox(Director::Movie *currentMovie, Graphics::ManagedSurf
 	}
 }
 
+void Window::decRefCount() {
+	Object<Window>::decRefCount();
+}
+
 bool Window::render(bool forceRedraw, Graphics::ManagedSurface *blitTo) {
 	if (!_currentMovie) {
 		return false;
