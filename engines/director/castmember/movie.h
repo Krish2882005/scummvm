@@ -77,6 +77,7 @@ public:
 
 	Common::Array<FilmLoopFrame> _frames;
 	Common::Array<Channel> _subchannels;
+	Common::Array<Sprite *> _tempSprites;
 
 private:
 	Common::Path _filename;
