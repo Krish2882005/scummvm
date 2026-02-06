@@ -113,6 +113,11 @@ Common::Array<Channel> *MovieCastMember::getSubChannels(Common::Rect &bbox) {
 		load();
 	}
 
+	for (auto s : _tempSprites) {
+		delete s;
+	}
+
+	_tempSprites.clear();
 	_subchannels.clear();
 
 	// Since the main movie and the linked movie cast member share lingo execution, it is global
@@ -120,7 +125,6 @@ Common::Array<Channel> *MovieCastMember::getSubChannels(Common::Rect &bbox) {
 	Movie *mainMovie = _window->getParent()->getCurrentMovie();
 	_window->getParent()->setCurrentMovie(_movie);
 	_movie->getScore()->step();
-	_movie->getScore()->loadFrame(_movie->getScore()->_curFrameNumber, true);
 	_window->getParent()->setCurrentMovie(mainMovie);
 
 	debugC(3, kDebugMovieCast, "MovieCastMember::getSubChannels():: Current Frame number of movie %s: %d, fps: %d", _filename.toString().c_str(), _movie->getScore()->_curFrameNumber, _movie->getScore()->_currentFrameRate);
@@ -131,6 +135,11 @@ Common::Array<Channel> *MovieCastMember::getSubChannels(Common::Rect &bbox) {
 	for (auto src: sprites) {
 		if (!src->_cast)
 			continue;
+
+		// Create a temporary copy of the sprite.
+		Sprite *tempSprite = new Sprite(*src);
+		_tempSprites.push_back(tempSprite);
+
 		// translate sprite relative to the global bounding box
 		int16 relX = (src->_startPoint.x - _initialRect.left) * widgetRect.width() / _initialRect.width();
 		int16 relY = (src->_startPoint.y - _initialRect.top) * widgetRect.height() / _initialRect.height();
@@ -139,17 +148,17 @@ Common::Array<Channel> *MovieCastMember::getSubChannels(Common::Rect &bbox) {
 		int16 width = src->_width * widgetRect.width() / _initialRect.width();
 		int16 height = src->_height * widgetRect.height() / _initialRect.height();
 
-		// Re-inject the translated position into the Sprite.
+		// Re-inject the translated position into the temporary Sprite.
 		// This saves the hassle of having to force the Channel to be in puppet mode.
-		src->_width = width;
-		src->_height = height;
-		src->_startPoint = Common::Point(absX, absY);
-		src->_stretch = true;
+		tempSprite->_width = width;
+		tempSprite->_height = height;
+		tempSprite->_startPoint = Common::Point(absX, absY);
+		tempSprite->_stretch = true;
 
 		// Film loop frames are constructed as a series of Channels, much like how a normal frame
 		// is rendered by the Score. We don't include a pointer to the current Score here,
 		// that's only for querying the constraint channel which is not used.
-		Channel chan(_movie->getScore(), src);
+		Channel chan(_movie->getScore(), tempSprite);
 		_subchannels.push_back(chan);
 	}
 	// Initialise the widgets on all of the subchannels.
