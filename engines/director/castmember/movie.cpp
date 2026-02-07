@@ -189,6 +189,11 @@ void MovieCastMember::load() {
 		return;
 	}
 
+	CastMemberInfo *info = getInfo();
+	if (info) {
+		_filename = Common::Path(info->fileName);
+	}
+
 	if (_filename.empty()) {
 		debugC(5, kDebugLoading, "MovieCastMember::load(): load called on MovieCastMember before filename was set");
 		return;
@@ -214,8 +219,13 @@ void MovieCastMember::load() {
 	_movie->loadArchive();
 	_movie->_isCastMember = true;
 
+	Movie *mainMovie = _window->getParent()->getCurrentMovie();
+	_window->getParent()->setCurrentMovie(_movie);
+
 	_movie->getScore()->startPlay();
 	_movie->getScore()->setCurrentFrame(1);
+
+	_window->getParent()->setCurrentMovie(mainMovie); 
 
 	g_debugger->movieHook();
 
