@@ -58,6 +58,9 @@ public:
 	CastMemberID getSubChannelSound1();
 	CastMemberID getSubChannelSound2();
 
+	virtual Common::Point getRegistrationOffset() override;
+	virtual Common::Point getRegistrationOffset(int16 currentWidth, int16 currentHeight) override;
+
 	void load() override;
 
 	bool isModified();

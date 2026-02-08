@@ -182,6 +182,15 @@ CastMemberID MovieCastMember::getSubChannelSound2() {
 	return CastMemberID();
 }
 
+
+Common::Point MovieCastMember::getRegistrationOffset() {
+	return Common::Point(_initialRect.width() / 2, _initialRect.height() / 2);
+}
+
+Common::Point MovieCastMember::getRegistrationOffset(int16 currentWidth, int16 currentHeight) {
+	return Common::Point(currentWidth / 2, currentHeight / 2);
+}
+
 void MovieCastMember::load() {
 	debug("Called MovieCastMember::load on cast id: %d", _castId);
 	if (_loaded) {
