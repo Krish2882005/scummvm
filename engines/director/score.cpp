@@ -1464,6 +1464,15 @@ void Score::updateWidgets(bool hasVideoPlayback) {
 		if (hasVideoPlayback)
 			channel->updateVideoTime();
 		if (cast && (cast->_type != kCastDigitalVideo || hasVideoPlayback) && cast->isModified()) {
+			_window->addDirtyRect(channel->getBbox());
+
+			if (!channel->_sprite->_stretch) {
+				Common::Rect dims = cast->getInitialRect();
+
+				channel->_sprite->_width = dims.width();
+				channel->_sprite->_height = dims.height();
+			}
+
 			channel->replaceWidget();
 			_window->addDirtyRect(channel->getBbox());
 		}

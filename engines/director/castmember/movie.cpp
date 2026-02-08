@@ -227,6 +227,11 @@ void MovieCastMember::load() {
 	_movie->setArchive(_archive);
 	_movie->loadArchive();
 	_movie->_isCastMember = true;
+	
+	int w = _movie->_movieRect.width();
+	int h = _movie->_movieRect.height();
+
+	_initialRect = Common::Rect(0, 0, w, h);
 
 	Movie *mainMovie = _window->getParent()->getCurrentMovie();
 	_window->getParent()->setCurrentMovie(_movie);
@@ -326,6 +331,7 @@ void MovieCastMember::setField(int field, const Datum &d) {
 		return;
 	case kTheFileName:
 		_filename = Common::Path(d.asString());
+		_loaded = false;
 		break;
 	default:
 		break;
