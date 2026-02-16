@@ -275,6 +275,9 @@ ImColor brightenColor(const ImColor &color, float factor);
 Window *windowListCombo(Common::String *target);
 Common::String formatHandlerName(int scriptId, int castId, Common::String handlerName, ScriptType scriptType, bool childScript);
 
+const char *toString(CastType castType);
+const char *toIcon(CastType castType);
+
 void showCast();		// dt-cast.cpp
 void showControlPanel(); // dt-controlpanel.cpp
 

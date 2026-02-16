@@ -53,62 +53,6 @@ static const char *toString(ScriptType scriptType) {
 	return scriptTypes[(int)scriptType];
 }
 
-static const char *toIcon(CastType castType) {
-	static const char *castTypes[] = {
-		"",                           // Empty
-		ICON_MS_BACKGROUND_DOT_LARGE, // Bitmap
-		ICON_MS_THEATERS,             // FilmLoop
-		ICON_MS_MATCH_CASE,           // Text
-		ICON_MS_PALETTE,              // Palette
-		ICON_MS_IMAGESMODE,           // Picture
-		ICON_MS_VOLUME_UP,            // Sound
-		ICON_MS_SLAB_SERIF,           // Button
-		ICON_MS_SHAPES,               // Shape
-		ICON_MS_MOVIE,                // Movie
-		ICON_MS_ANIMATED_IMAGES,      // DigitalVideo
-		ICON_MS_FORMS_APPS_SCRIPT,    // Script
-		ICON_MS_BRAND_FAMILY,         // RTE
-		"?",                          // ???
-		ICON_MS_TRANSITION_FADE};     // Transition
-	if (castType < 0 || castType > kCastTransition)
-		return "";
-	return castTypes[(int)castType];
-}
-
-const char *toString(CastType castType) {
-	static const char *castTypes[] = {
-		"Empty",
-		"Bitmap",
-		"FilmLoop",
-		"Text",
-		"Palette",
-		"Picture",
-		"Sound",
-		"Button",
-		"Shape",
-		"Movie",
-		"DigitalVideo",
-		"Script",
-		"RTE",
-		"???",
-		"Transition"};
-	if (castType < 0 || castType > kCastTransition)
-		return "???";
-	return castTypes[(int)castType];
-}
-
-Common::String getDisplayName(CastMember *castMember) {
-	const CastMemberInfo *castMemberInfo = castMember->getInfo();
-	Common::String name(castMemberInfo ? castMemberInfo->name : "");
-	if (!name.empty())
-		return name;
-	if (castMember->_type == kCastText) {
-		TextCastMember *textCastMember = (TextCastMember *)castMember;
-		return textCastMember->getText();
-	}
-	return Common::String::format("%u", castMember->getID());
-}
-
 void showCast() {
 	if (!_state->_w.cast)
 		return;

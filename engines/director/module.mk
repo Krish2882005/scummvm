@@ -216,7 +216,8 @@ MODULE_OBJS += \
 	debugger/dt-score.o \
 	debugger/dt-script-d2.o \
 	debugger/dt-script-d4.o \
-	debugger/dt-scripts.o
+	debugger/dt-scripts.o \
+	debugger/dt-utils.o
 
 endif
 
