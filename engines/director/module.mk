@@ -209,6 +209,7 @@ MODULE_OBJS = \
 ifdef USE_IMGUI
 MODULE_OBJS += \
 	debugger/debugtools.o \
+	debugger/dt-castdetails.o \
 	debugger/dt-cast.o \
 	debugger/dt-controlpanel.o \
 	debugger/dt-lists.o \

@@ -87,6 +87,7 @@ typedef struct ImGuiWindows {
 	bool vars = false;
 	bool channels = false;
 	bool cast = false;
+	bool castDetails = false;
 	bool funcList = false;
 	bool score = false;
 	bool bpList = false;
@@ -116,6 +117,7 @@ typedef struct ImGuiState {
 		int _thumbnailSize = 64;
 		ImGuiTextFilter _nameFilter;
 		int _typeFilter = 0x7FFF;
+		CastMemberID _selectedCastMember;
 	} _cast;
 	struct {
 		ImGuiTextFilter _nameFilter;
@@ -251,6 +253,7 @@ const char *toString(CastType castType);
 const char *toIcon(CastType castType);
 
 void showCast();        // dt-cast.cpp
+void showCastDetails();  // dt-castdetails.cpp
 void showControlPanel(); // dt-controlpanel.cpp
 
 // dt-lists.cpp
