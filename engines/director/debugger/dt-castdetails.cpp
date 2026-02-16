@@ -24,6 +24,7 @@
 #include "director/debugger/dt-internal.h"
 
 #include "director/cast.h"
+#include "director/castmember/bitmap.h"
 #include "director/castmember/castmember.h"
 #include "director/movie.h"
 
@@ -145,6 +146,57 @@ void showCastDetails() {
 				}
 
 				ImGui::EndTabItem();
+			}
+			
+			if (member->_type == kCastBitmap) {
+				BitmapCastMember *bmp = (BitmapCastMember *)member;
+				if (ImGui::BeginTabItem("Bitmap")) {
+					if (ImGui::CollapsingHeader("Media Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
+						if (ImGui::BeginTable("BitmapMediaProps", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+							ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+							ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+							ImGui::Text("centerRegPoint");
+							ImGui::TableNextColumn();
+							bool crp = (bmp->_flags1 & BitmapCastMember::kFlagCenterRegPoint);
+							ImGui::Checkbox("##crp", &crp);
+
+							ImGui::EndTable();
+						}
+					}
+
+					if (ImGui::CollapsingHeader("Playback Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
+						if (ImGui::BeginTable("BitmapPlaybackProps", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+							ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+							ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+							ImGui::Text("dither");
+							ImGui::TableNextColumn();
+							bool dither = (bmp->_flags1 & BitmapCastMember::kFlagDither);
+							ImGui::Checkbox("##dither", &dither);
+
+							PropRowInt("alphaThreshold", bmp->_alphaThreshold);
+							PropRowInt("depth", bmp->_bitsPerPixel);
+							PropRowInt("imageQuality", info->imageQuality);
+
+							ImGui::EndTable();
+						}
+					}
+
+					ImGui::Separator();
+					ImGui::Text("Preview");
+					ImGuiImage imgID = getImageID(member);
+					if (imgID.id) {
+						showImage(imgID, displayName.c_str(), 128.0f);
+					} else {
+						ImGui::TextDisabled("(No Image Data)");
+					}
+
+					ImGui::EndTabItem();
+				}
 			}
 
 			if (ImGui::BeginTabItem("Cast")) {
