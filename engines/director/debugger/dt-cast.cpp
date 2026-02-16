@@ -121,7 +121,12 @@ void showCast() {
 
 						ImGui::TableNextRow();
 						ImGui::TableNextColumn();
-						ImGui::Text("%s %s", toIcon(castMember._value->_type), name.c_str());
+
+						bool isSelected = (_state->_cast._selectedCastMember == CastMemberID(castMember._key, cast->_castLibID));
+						if (ImGui::Selectable(Common::String::format("%s %s", toIcon(castMember._value->_type), name.c_str()).c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns)) {
+							_state->_cast._selectedCastMember = CastMemberID(castMember._key, cast->_castLibID);
+							_state->_w.castDetails = true;
+						}
 
 						ImGui::TableNextColumn();
 						ImGui::Text("%d", castMember._key);
@@ -261,6 +266,18 @@ void showCast() {
 							ImGui::PopClipRect();
 						}
 						ImGui::EndGroup();
+
+						if (ImGui::IsItemClicked()) {
+							_state->_cast._selectedCastMember = CastMemberID(castMember._key, cast->_castLibID);
+							_state->_w.castDetails = true;
+						}
+
+						if (_state->_cast._selectedCastMember == CastMemberID(castMember._key, cast->_castLibID)) {
+							ImVec2 p0 = ImGui::GetItemRectMin();
+							ImVec2 p1 = ImGui::GetItemRectMax();
+							ImGui::GetWindowDrawList()->AddRect(p0, p1, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+						}
+
 					}
 				}
 				ImGui::EndTable();

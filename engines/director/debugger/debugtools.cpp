@@ -582,6 +582,7 @@ void onImGuiRender() {
 			ImGui::MenuItem("Score", NULL, &_state->_w.score);
 			ImGui::MenuItem("Functions", NULL, &_state->_w.funcList);
 			ImGui::MenuItem("Cast", NULL, &_state->_w.cast);
+			ImGui::MenuItem("Property Inspector", NULL, &_state->_w.castDetails);
 			ImGui::MenuItem("Channels", NULL, &_state->_w.channels);
 			ImGui::MenuItem("Breakpoints", NULL, &_state->_w.bpList);
 			ImGui::MenuItem("Vars", NULL, &_state->_w.vars);
@@ -613,6 +614,7 @@ void onImGuiRender() {
 	showVars();
 	showChannels();
 	showCast();
+	showCastDetails();
 	showFuncList();
 	showScore();
 	showBreakpointList();
