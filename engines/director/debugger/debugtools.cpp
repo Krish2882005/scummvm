@@ -499,6 +499,7 @@ static const DebuggerTheme themes[kThemeCount] = {
 		IM_COL32(0xC8, 0x32, 0x00, 0xFF), // playhead_color
 		IM_COL32(0xFF, 0xFF, 0x00, 0x20), // current_statement_bg
 		IM_COL32(0x30, 0x30, 0xFF, 0xFF), // channel_toggle
+		IM_COL32(0xB4, 0x32, 0x32, 0xC8), // channel_hide_bg
 		IM_COL32(0x94, 0x00, 0xD3, 0xFF), // channelSelectedCol
 		IM_COL32(0xFF, 0xFF, 0x00, 0x3C), // channelHoveredCol
 		{                                 // contColors
@@ -556,6 +557,7 @@ static const DebuggerTheme themes[kThemeCount] = {
 		IM_COL32(0xC8, 0x32, 0x00, 0xFF), // playhead_color
 		IM_COL32(0xFF, 0xFF, 0x00, 0x60), // current_statement_bg
 		IM_COL32(0x00, 0x00, 0xB0, 0xFF), // channel_toggle
+		IM_COL32(0xDC, 0x3C, 0x3C, 0xC8), // channel_hide_bg
 		IM_COL32(0x94, 0x00, 0xD3, 0xFF), // channelSelectedCol
 		IM_COL32(0xD0, 0x90, 0x00, 0x50), // channelHoveredCol
 		{                                 // contColors
@@ -649,6 +651,20 @@ static void showSettings() {
 		}
 
 		_state->_logger->drawColorOptions();
+
+		ImGui::SeparatorText("Debugger Behavior");
+		ImGui::Checkbox("Ignore Mouse Events", &_state->_ignoreMouse);
+		ImGui::SetItemTooltip("Block mouse events from reaching Director.\nHold SHIFT to temporarily allow them.\nPress Ctrl+F1 to toggle this setting.");
+
+		ImGuiIO &io = ImGui::GetIO();
+		if (ImGui::Checkbox("Enable Multi-Viewport", &_state->_enableMultiViewport)) {
+			if (_state->_enableMultiViewport) {
+				io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+			} else {
+				io.ConfigFlags &= ~ImGuiConfigFlags_ViewportsEnable;
+			}
+		}
+		ImGui::SetItemTooltip("When disabled, all debugger windows are forced to stay inside the main ScummVM window.");
 	}
 	ImGui::End();
 }
@@ -708,6 +724,13 @@ void onImGuiRender() {
 
 	ImGuiIO &io = ImGui::GetIO();
 	io.ConfigFlags &= ~(ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NoMouse);
+
+	if (ImGui::IsKeyChordPressed(ImGuiMod_Ctrl | ImGuiKey_F1)) {
+		_state->_ignoreMouse = !_state->_ignoreMouse;
+
+		Common::String msg = Common::String::format("Debug Mouse Ignore: %s", _state->_ignoreMouse ? "ON" : "OFF");
+		g_system->displayMessageOnOSD(Common::U32String(msg));
+	}
 
 	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
@@ -791,6 +814,29 @@ void onImGuiCleanup() {
 
 int getSelectedChannel(){
 	return _state ? _state->_selectedChannel : -1;
+}
+
+void setSelectedChannel(int channel) {
+	if (_state) {
+		_state->_selectedChannel = channel;
+
+		if (channel > 0) {
+			_state->_scrollToChannel = true; 
+			_state->_w.channels = true;
+		}
+	}
+}
+
+bool isMouseInputIgnored() {
+	if (!_state || !_state->_ignoreMouse)
+		return false;
+
+	// Holding Shift temporarily allows mouse events to pass to the engine
+	ImGuiIO &io = ImGui::GetIO();
+	if (io.KeyShift)
+		return false;
+
+	return true;
 }
 
 Common::String formatHandlerName(int scriptId, int castId, Common::String handlerName, ScriptType scriptType, bool childScript) {

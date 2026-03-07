@@ -24,6 +24,7 @@
 #include "backends/imgui/IconsMaterialSymbols.h"
 #include "director/director.h"
 #include "director/debugger/dt-internal.h"
+#include "director/debugger/debugtools.h"
 
 #include "director/cast.h"
 #include "director/castmember/castmember.h"
@@ -296,7 +297,17 @@ static void drawSidebar2(ImDrawList *dl, ImVec2 startPos, Score *score) {
 
 		ImVec2 center(rowMin.x + pad + radius, rowMax.y - pad - radius);
 
-		if (score->_channels[ch]->_visible)
+		bool isEngineVis = score->_channels[ch]->_visible;
+		bool isHiddenFromStage = score->_channels[ch]->_hideFromStage;
+
+		if (isHiddenFromStage) {
+			float offset = 6.0f;
+			ImVec2 boxMin(center.x - offset, center.y - offset);
+			ImVec2 boxMax(center.x + offset, center.y + offset);
+			dl->AddRectFilled(boxMin, boxMax, _state->theme->channel_hide_bg);
+		}
+
+		if (isEngineVis)
 			dl->AddCircleFilled(center, radius, _state->theme->channel_toggle);
 		else
 			dl->AddCircle(center, radius, _state->theme->channel_toggle);
@@ -306,7 +317,7 @@ static void drawSidebar2(ImDrawList *dl, ImVec2 startPos, Score *score) {
 		if (ImGui::IsItemHovered())
 			setTooltip("Playback toggle");
 		if (ImGui::IsItemClicked()) { // determines what happens on toggle of the button
-			score->_channels[ch]->_visible = !score->_channels[ch]->_visible;
+			score->_channels[ch]->_hideFromStage = !isHiddenFromStage;
 		}
 
 		// channel num and extra stuff if extended mode
@@ -730,6 +741,25 @@ static void drawSpriteGrid(ImDrawList *dl, ImVec2 startPos, Score *score, Cast *
 					_state->_selectedScoreCast.frame = rf;
 					_state->_selectedScoreCast.channel = ch;
 					_state->_selectedScoreCast.isMainChannel = false;
+
+					int playheadIdx = score->getCurrentFrameNum() - 1;
+					if (playheadIdx >= spanStart && playheadIdx <= spanEnd) {
+						Director::DT::setSelectedChannel(ch);
+						window->render(true);
+					}
+				}
+
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+					score->_playState = kPlayStarted;
+
+					Datum frameDatum(rf + 1);
+					Datum movieDatum;
+					g_lingo->func_goto(frameDatum, movieDatum, true);
+
+					_state->_prevFrame = score->getCurrentFrameNum();
+
+					Director::DT::setSelectedChannel(ch);
+					window->render(true);
 				}
 
 				if (ImGui::IsItemHovered()) {
@@ -1217,6 +1247,14 @@ void showChannels() {
 
 				ImGui::TableNextRow();
 
+				if (_state->_selectedChannel == i + 1 && _state->_scrollToChannel) {
+					ImGui::SetScrollHereY(0.5f);
+					_state->_scrollToChannel = false;
+				}
+
+				bool isEngineVis = channel._visible;
+				bool isHiddenFromStage = channel._hideFromStage;
+
 				{ // Playback toggle
 					ImGui::TableNextColumn();
 
@@ -1229,12 +1267,18 @@ void showChannels() {
 					ImGui::SetItemTooltip("Playback toggle");
 
 					if (ImGui::IsItemClicked(0)) {
-						score->_channels[i]->_visible = !score->_channels[i]->_visible;
-
+						channel._hideFromStage = !isHiddenFromStage;
 						selectedWindow->render(true);
 					}
 
-					if (score->_channels[i]->_visible)
+					if (isHiddenFromStage) {
+						float offset = 6.0f;
+						ImVec2 boxMin(mid.x - offset, mid.y - offset);
+						ImVec2 boxMax(mid.x + offset, mid.y + offset);
+						dl->AddRectFilled(boxMin, boxMax, _state->theme->channel_hide_bg);
+					}
+
+					if (isEngineVis)
 						dl->AddCircleFilled(mid, 4.0f, _state->theme->channel_toggle);
 					else
 						dl->AddCircle(mid, 4.0f, _state->theme->channel_toggle);
@@ -1245,7 +1289,9 @@ void showChannels() {
 				ImGui::TableNextColumn();
 
 				bool isSelected = (_state->_selectedChannel == i + 1);
-				if (ImGui::Selectable(Common::String::format("%-3d", i + 1).c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns)) {
+				int numLines = (score->_version >= kFileVer600) ? MAX<int>(1, sprite._behaviors.size()) : 1;
+				float rowHeight = (ImGui::GetTextLineHeightWithSpacing() * numLines) + (ImGui::GetStyle().CellPadding.y * 2);
+				if (ImGui::Selectable(Common::String::format("%-3d", i + 1).c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap, ImVec2(0, rowHeight))) {
 					if (isSelected) {
 						_state->_selectedChannel = -1;
 					 } else {
@@ -1265,7 +1311,9 @@ void showChannels() {
 					ImGui::Text("%s", sprite._castId.asString().c_str());
 					ImGui::TableNextColumn();
 					colN = "##vis" + chNum;
-					ImGui::Checkbox(colN.c_str(), &channel._visible);
+					if (ImGui::Checkbox(colN.c_str(), &channel._visible)) {
+						selectedWindow->render(true);
+					}
 					ImGui::TableNextColumn();
 					ImGui::Text("0x%02x", sprite._inkData);
 					ImGui::TableNextColumn();
